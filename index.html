@@ -4,384 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>测试样例管理工具</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-        }
-        
-        .container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            color: #7f8c8d;
-            font-size: 1.1rem;
-        }
-        
-        .main-content {
-            display: flex;
-            flex: 1;
-            gap: 30px;
-        }
-        
-        @media (max-width: 900px) {
-            .main-content {
-                flex-direction: column;
-            }
-        }
-        
-        /* 左侧样例列表样式 */
-        .testcases-panel {
-            flex: 0 0 300px;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-        
-        .panel-title {
-            font-size: 1.3rem;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background-color: #3498db;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
-        }
-        
-        .btn-danger {
-            background-color: #e74c3c;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background-color: #c0392b;
-        }
-        
-        .btn-success {
-            background-color: #2ecc71;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background-color: #27ae60;
-            transform: translateY(-2px);
-        }
-        
-        .testcases-list {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 25px;
-        }
-        
-        .testcase-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            margin-bottom: 12px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #3498db;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        
-        .testcase-item:hover {
-            background-color: #e9f7fe;
-            transform: translateX(5px);
-        }
-        
-        .testcase-item.active {
-            background-color: #e1f0fa;
-            border-left-color: #2c3e50;
-            box-shadow: 0 3px 8px rgba(52, 152, 219, 0.2);
-        }
-        
-        .testcase-number {
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: #2c3e50;
-        }
-        
-        .testcase-actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .icon-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #7f8c8d;
-            font-size: 1rem;
-            transition: color 0.2s;
-            padding: 5px;
-            border-radius: 4px;
-        }
-        
-        .icon-btn:hover {
-            color: #e74c3c;
-            background-color: rgba(231, 76, 60, 0.1);
-        }
-        
-        /* 右侧编辑区域样式 */
-        .editor-panel {
-            flex: 1;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .editor-header {
-            margin-bottom: 25px;
-        }
-        
-        .editor-title {
-            font-size: 1.3rem;
-            color: #2c3e50;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .editor-title i {
-            color: #3498db;
-        }
-        
-        .no-selection {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            color: #7f8c8d;
-            text-align: center;
-        }
-        
-        .no-selection i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            color: #bdc3c7;
-        }
-        
-        .editor-content {
-            display: none;
-            flex-direction: column;
-            flex: 1;
-        }
-        
-        .editor-content.active {
-            display: flex;
-        }
-        
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 20px;
-        }
-        
-        .tab {
-            padding: 12px 25px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            color: #7f8c8d;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-        }
-        
-        .tab.active {
-            color: #3498db;
-            border-bottom-color: #3498db;
-        }
-        
-        .tab-content {
-            display: none;
-            flex: 1;
-            flex-direction: column;
-        }
-        
-        .tab-content.active {
-            display: flex;
-        }
-        
-        .code-editor {
-            flex: 1;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .editor-header-bar {
-            background-color: #f8f9fa;
-            padding: 10px 15px;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-        
-        textarea {
-            width: 100%;
-            flex: 1;
-            padding: 15px;
-            border: none;
-            resize: none;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        textarea:focus {
-            outline: none;
-        }
-        
-        textarea#input-editor {
-            border-bottom: 1px solid #eee;
-        }
-        
-        .download-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            text-align: center;
-        }
-        
-        .btn-download {
-            padding: 15px 40px;
-            font-size: 1.1rem;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            background-color: #2ecc71;
-            color: white;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transform: translateX(150%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-        }
-        
-        .notification.error {
-            background-color: #e74c3c;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #7f8c8d;
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            color: #bdc3c7;
-        }
-        
-        .instructions {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #555;
-        }
-        
-        .instructions h3 {
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        
-        .instructions ul {
-            padding-left: 20px;
-        }
-        
-        .instructions li {
-            margin-bottom: 8px;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -395,9 +21,14 @@
             <div class="testcases-panel">
                 <div class="panel-header">
                     <div class="panel-title">测试样例列表</div>
-                    <button id="add-testcase" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> 添加样例
-                    </button>
+                    <div class="button-group">
+                        <button id="add-testcase" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> 添加样例
+                        </button>
+                        <button id="batch-add" class="btn btn-secondary">
+                            <i class="fas fa-copy"></i> 批量添加
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="testcases-list" id="testcases-list">
@@ -409,14 +40,16 @@
                 </div>
                 
                 <div class="instructions">
-                    <h3>使用说明：</h3>
-                    <ul>
-                        <li>点击"添加样例"按钮创建新的测试样例</li>
-                        <li>点击样例编号可查看和编辑内容</li>
-                        <li>每个样例包含输入(IN)和输出(OUT)文件</li>
-                        <li>删除样例后编号会自动重新排列</li>
-                        <li>点击"下载所有样例"打包为ZIP文件</li>
-                    </ul>
+                    <h3>批量添加格式：</h3>
+                    <pre>
+in1:
+输入数据
+out1:
+输出数据
+in2:
+输入数据
+out2:
+输出数据</pre>
                 </div>
             </div>
             
@@ -479,349 +112,39 @@
             <p>测试样例管理工具 &copy; 2023 | 自动编号，禁止自定义名称</p>
         </div>
         
+        <!-- 批量添加模态框 -->
+        <div class="modal" id="batch-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-copy"></i> 批量添加测试样例</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>请按照以下格式输入测试样例：</p>
+                    <pre class="format-example">
+in1:
+输入数据
+out1:
+输出数据
+in2:
+输入数据
+out2:
+输出数据</pre>
+                    <textarea id="batch-input" placeholder="粘贴批量测试样例数据..."></textarea>
+                    <div class="modal-footer">
+                        <button id="batch-cancel" class="btn btn-secondary">取消</button>
+                        <button id="batch-submit" class="btn btn-primary">添加测试样例</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- 通知提示 -->
         <div class="notification" id="notification">
             操作成功！
         </div>
     </div>
 
-    <script>
-        // 测试样例数据模型
-        let testCases = [];
-        let nextId = 1;
-        let currentTestCaseId = null;
-        
-        // DOM元素
-        const testcasesList = document.getElementById('testcases-list');
-        const noSelection = document.getElementById('no-selection');
-        const editorContent = document.getElementById('editor-content');
-        const editorTitle = document.querySelector('#editor-title span');
-        const inputEditor = document.getElementById('input-editor');
-        const outputEditor = document.getElementById('output-editor');
-        const inputCount = document.getElementById('input-count');
-        const outputCount = document.getElementById('output-count');
-        const addButton = document.getElementById('add-testcase');
-        const downloadButton = document.getElementById('download-all');
-        const notification = document.getElementById('notification');
-        
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 从本地存储加载数据
-            loadFromLocalStorage();
-            
-            // 绑定事件监听器
-            addButton.addEventListener('click', addTestCase);
-            downloadButton.addEventListener('click', downloadAllTestCases);
-            
-            // 输入编辑器事件监听
-            inputEditor.addEventListener('input', function() {
-                updateCount(inputCount, this.value);
-                updateTestCaseContent('input', this.value);
-            });
-            
-            outputEditor.addEventListener('input', function() {
-                updateCount(outputCount, this.value);
-                updateTestCaseContent('output', this.value);
-            });
-            
-            // 标签切换
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabType = this.getAttribute('data-tab');
-                    switchTab(tabType);
-                });
-            });
-            
-            // 渲染初始列表
-            renderTestCasesList();
-        });
-        
-        // 添加新的测试样例
-        function addTestCase() {
-            const newTestCase = {
-                id: nextId++,
-                input: '',
-                output: ''
-            };
-            
-            testCases.push(newTestCase);
-            saveToLocalStorage();
-            renderTestCasesList();
-            selectTestCase(newTestCase.id);
-            
-            showNotification('新测试样例已创建');
-        }
-        
-        // 删除测试样例
-        function deleteTestCase(id) {
-            if (!confirm('确定要删除这个测试样例吗？')) return;
-            
-            // 从数组中移除
-            testCases = testCases.filter(testCase => testCase.id !== id);
-            
-            // 如果删除的是当前选中的样例，则清空选择
-            if (currentTestCaseId === id) {
-                currentTestCaseId = null;
-                noSelection.style.display = 'flex';
-                editorContent.classList.remove('active');
-            }
-            
-            // 重新编号
-            renumberTestCases();
-            saveToLocalStorage();
-            renderTestCasesList();
-            
-            showNotification('测试样例已删除');
-        }
-        
-        // 重新编号测试样例
-        function renumberTestCases() {
-            // 按ID排序
-            testCases.sort((a, b) => a.id - b.id);
-            
-            // 更新nextId
-            if (testCases.length > 0) {
-                nextId = Math.max(...testCases.map(tc => tc.id)) + 1;
-            } else {
-                nextId = 1;
-            }
-        }
-        
-        // 选择测试样例
-        function selectTestCase(id) {
-            const testCase = testCases.find(tc => tc.id === id);
-            if (!testCase) return;
-            
-            currentTestCaseId = id;
-            
-            // 更新UI显示
-            noSelection.style.display = 'none';
-            editorContent.classList.add('active');
-            editorTitle.textContent = `编辑样例 ${testCase.id}`;
-            
-            // 更新编辑器内容
-            inputEditor.value = testCase.input;
-            outputEditor.value = testCase.output;
-            updateCount(inputCount, testCase.input);
-            updateCount(outputCount, testCase.output);
-            
-            // 更新列表中的活动状态
-            document.querySelectorAll('.testcase-item').forEach(item => {
-                item.classList.remove('active');
-                if (parseInt(item.dataset.id) === id) {
-                    item.classList.add('active');
-                }
-            });
-            
-            // 默认切换到输入标签
-            switchTab('input');
-        }
-        
-        // 更新测试样例内容
-        function updateTestCaseContent(type, content) {
-            const testCase = testCases.find(tc => tc.id === currentTestCaseId);
-            if (!testCase) return;
-            
-            if (type === 'input') {
-                testCase.input = content;
-            } else {
-                testCase.output = content;
-            }
-            
-            saveToLocalStorage();
-        }
-        
-        // 切换标签页
-        function switchTab(tabType) {
-            // 更新标签按钮状态
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-                if (tab.getAttribute('data-tab') === tabType) {
-                    tab.classList.add('active');
-                }
-            });
-            
-            // 更新标签内容显示
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-                if (content.id === `${tabType}-tab`) {
-                    content.classList.add('active');
-                }
-            });
-        }
-        
-        // 更新字符计数
-        function updateCount(element, text) {
-            const charCount = text.length;
-            const lineCount = text.split('\n').length;
-            element.textContent = `${lineCount} 行, ${charCount} 字符`;
-        }
-        
-        // 渲染测试样例列表
-        function renderTestCasesList() {
-            if (testCases.length === 0) {
-                testcasesList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-clipboard-list"></i>
-                        <p>暂无测试样例，点击上方按钮添加</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            testcasesList.innerHTML = '';
-            
-            testCases.forEach(testCase => {
-                const testcaseElement = document.createElement('div');
-                testcaseElement.className = `testcase-item ${currentTestCaseId === testCase.id ? 'active' : ''}`;
-                testcaseElement.dataset.id = testCase.id;
-                
-                // 计算输入输出的行数
-                const inputLines = testCase.input.split('\n').length;
-                const outputLines = testCase.output.split('\n').length;
-                
-                testcaseElement.innerHTML = `
-                    <div>
-                        <div class="testcase-number">样例 ${testCase.id}</div>
-                        <div style="font-size: 0.8rem; color: #7f8c8d; margin-top: 5px;">
-                            IN: ${inputLines}行, OUT: ${outputLines}行
-                        </div>
-                    </div>
-                    <div class="testcase-actions">
-                        <button class="icon-btn delete-btn" title="删除">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                `;
-                
-                // 添加点击事件
-                testcaseElement.addEventListener('click', function(e) {
-                    if (!e.target.closest('.icon-btn')) {
-                        selectTestCase(testCase.id);
-                    }
-                });
-                
-                // 添加删除按钮事件
-                const deleteBtn = testcaseElement.querySelector('.delete-btn');
-                deleteBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    deleteTestCase(testCase.id);
-                });
-                
-                testcasesList.appendChild(testcaseElement);
-            });
-        }
-        
-        // 下载所有测试样例为ZIP文件
-        async function downloadAllTestCases() {
-            if (testCases.length === 0) {
-                showNotification('没有可下载的测试样例', true);
-                return;
-            }
-            
-            try {
-                const zip = new JSZip();
-                
-                // 添加每个测试样例的.in和.out文件
-                testCases.forEach(testCase => {
-                    zip.file(`${testCase.id}.in`, testCase.input);
-                    zip.file(`${testCase.id}.out`, testCase.output);
-                });
-                
-                // 添加一个说明文件
-                const readmeContent = `测试样例文件说明\n\n`
-                    + `本ZIP文件包含${testCases.length}个测试样例\n`
-                    + `每个样例包含两个文件：\n`
-                    + `  - .in 文件：输入数据\n`
-                    + `  - .out 文件：预期输出数据\n\n`
-                    + `文件命名规则：使用数字编号（1, 2, 3...）\n`
-                    + `生成时间：${new Date().toLocaleString()}\n`;
-                
-                zip.file("README.txt", readmeContent);
-                
-                // 生成ZIP文件
-                const content = await zip.generateAsync({type: "blob"});
-                
-                // 下载文件
-                saveAs(content, `testcases_${new Date().getTime()}.zip`);
-                
-                showNotification(`已打包下载 ${testCases.length} 个测试样例`);
-            } catch (error) {
-                console.error('生成ZIP文件时出错:', error);
-                showNotification('下载失败，请重试', true);
-            }
-        }
-        
-        // 显示通知
-        function showNotification(message, isError = false) {
-            notification.textContent = message;
-            notification.className = 'notification';
-            
-            if (isError) {
-                notification.classList.add('error');
-            }
-            
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-        
-        // 本地存储功能
-        function saveToLocalStorage() {
-            const data = {
-                testCases: testCases,
-                nextId: nextId
-            };
-            localStorage.setItem('testCasesManager', JSON.stringify(data));
-        }
-        
-        function loadFromLocalStorage() {
-            const savedData = localStorage.getItem('testCasesManager');
-            if (savedData) {
-                try {
-                    const data = JSON.parse(savedData);
-                    testCases = data.testCases || [];
-                    nextId = data.nextId || 1;
-                } catch (e) {
-                    console.error('加载本地存储数据失败:', e);
-                    testCases = [];
-                    nextId = 1;
-                }
-            }
-        }
-        
-        // 添加一些示例数据以便演示
-        function addSampleData() {
-            if (testCases.length === 0 && localStorage.getItem('firstVisit') === null) {
-                // 添加两个示例测试样例
-                testCases = [
-                    {
-                        id: 1,
-                        input: '',
-                        output: ''
-                    },
-                    {
-                        id: 2,
-                        input: '',
-                        output: ''
-                    },
-                    {
-                        id: 3,
-                        input: '',
-                        output: ''
-                    }
-                ];
-                nextId = 4;
-                localStorage.setItem('firstVisit', 'false');
-                saveToLocalStorage();
-                renderTestCasesList();
-            }
-        }
-        
-        // 初始化示例数据
-        addSampleData();
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
