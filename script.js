@@ -447,13 +447,13 @@ function initSampleData() {
         testCases = [
             {
                 id: 1,
-                input: '5\n1 2 3 4 5\n',
-                output: '15\n'
+                input: '',
+                output: ''
             },
             {
                 id: 2,
-                input: '3\n10 20 30\n',
-                output: '60\n'
+                input: '',
+                output: ''
             }
         ];
         nextId = 3;
