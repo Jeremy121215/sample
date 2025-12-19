@@ -14,14 +14,18 @@ const inputCount = document.getElementById('input-count');
 const outputCount = document.getElementById('output-count');
 const addButton = document.getElementById('add-testcase');
 const batchAddButton = document.getElementById('batch-add');
+const clearAllButton = document.getElementById('clear-all');
 const downloadButton = document.getElementById('download-all');
 const notification = document.getElementById('notification');
 
 // 模态框元素
 const batchModal = document.getElementById('batch-modal');
+const clearModal = document.getElementById('clear-modal');
 const batchInput = document.getElementById('batch-input');
 const batchSubmit = document.getElementById('batch-submit');
 const batchCancel = document.getElementById('batch-cancel');
+const clearConfirm = document.getElementById('clear-confirm');
+const clearCancel = document.getElementById('clear-cancel');
 const closeModalButtons = document.querySelectorAll('.close-modal');
 
 // 初始化
@@ -32,17 +36,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // 绑定事件监听器
     addButton.addEventListener('click', addTestCase);
     batchAddButton.addEventListener('click', openBatchModal);
+    clearAllButton.addEventListener('click', openClearModal);
     downloadButton.addEventListener('click', downloadAllTestCases);
     
     // 批量添加事件
     batchSubmit.addEventListener('click', processBatchInput);
     batchCancel.addEventListener('click', closeBatchModal);
-    closeModalButtons.forEach(btn => btn.addEventListener('click', closeBatchModal));
+    
+    // 清空确认事件
+    clearConfirm.addEventListener('click', clearAllTestCases);
+    clearCancel.addEventListener('click', closeClearModal);
+    
+    // 关闭模态框事件
+    closeModalButtons.forEach(btn => btn.addEventListener('click', closeAllModals));
     
     // 点击模态框外部关闭
     batchModal.addEventListener('click', function(e) {
         if (e.target === batchModal) {
-            closeBatchModal();
+            closeAllModals();
+        }
+    });
+    
+    clearModal.addEventListener('click', function(e) {
+        if (e.target === clearModal) {
+            closeAllModals();
         }
     });
     
@@ -95,6 +112,48 @@ function closeBatchModal() {
     batchModal.classList.remove('active');
 }
 
+// 清空所有测试样例
+function openClearModal() {
+    if (testCases.length === 0) {
+        showNotification('当前没有测试样例可清空', true);
+        return;
+    }
+    clearModal.classList.add('active');
+}
+
+function closeClearModal() {
+    clearModal.classList.remove('active');
+}
+
+function clearAllTestCases() {
+    // 清空所有测试样例
+    testCases = [];
+    nextId = 1;
+    currentTestCaseId = null;
+    
+    // 更新UI显示
+    noSelection.style.display = 'flex';
+    editorContent.classList.remove('active');
+    editorTitle.textContent = '请从左侧选择一个测试样例进行编辑';
+    
+    // 清空编辑器内容
+    inputEditor.value = '';
+    outputEditor.value = '';
+    updateCount(inputCount, '');
+    updateCount(outputCount, '');
+    
+    saveToLocalStorage();
+    renderTestCasesList();
+    closeClearModal();
+    
+    showNotification('已清空所有测试样例');
+}
+
+function closeAllModals() {
+    closeBatchModal();
+    closeClearModal();
+}
+
 function processBatchInput() {
     const text = batchInput.value.trim();
     if (!text) {
@@ -134,7 +193,7 @@ function parseBatchInput(text) {
     const lines = text.split('\n');
     
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
+        const line = lines[i];
         
         // 检查是否是输入标记
         const inMatch = line.match(/^in(\d+):$/i);
@@ -424,17 +483,16 @@ function loadFromLocalStorage() {
 // 添加示例数据
 function addSampleData() {
     if (testCases.length === 0 && localStorage.getItem('firstVisit') === null) {
-        // 添加示例测试样例
         testCases = [
             {
                 id: 1,
-                input: '5\n1 2 3 4 5\n',
-                output: '15\n'
+                input: '',
+                output: ''
             },
             {
                 id: 2,
-                input: '3\n10 20 30\n',
-                output: '60\n'
+                input: '',
+                output: ''
             }
         ];
         nextId = 3;
