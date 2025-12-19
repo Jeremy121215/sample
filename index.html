@@ -188,6 +188,27 @@ out2:
             </div>
         </div>
         
+        <!-- 清空确认模态框 -->
+        <div class="modal" id="clear-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> 确认清空所有样例</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="warning-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>您确定要清空所有测试样例吗？此操作不可撤销！</p>
+                        <p class="warning-detail">所有样例数据将被永久删除。</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="clear-cancel" class="btn btn-secondary">取消</button>
+                        <button id="clear-confirm" class="btn btn-danger">确认清空</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- 通知提示 -->
         <div class="notification" id="notification">
             操作成功！
