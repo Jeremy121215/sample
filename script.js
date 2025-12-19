@@ -30,22 +30,19 @@ const closeModalButtons = document.querySelectorAll('.close-modal');
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
-    // 从本地存储加载数据
-    loadFromLocalStorage();
+    // 不再从本地存储加载数据
+    // 初始化示例数据
+    initSampleData();
     
     // 绑定事件监听器
     addButton.addEventListener('click', addTestCase);
     batchAddButton.addEventListener('click', openBatchModal);
-    clearAllButton.addEventListener('click', openClearModal);
+    clearAllButton.addEventListener('click', clearAllTestCases); // 直接调用，不需要模态框确认
     downloadButton.addEventListener('click', downloadAllTestCases);
     
     // 批量添加事件
     batchSubmit.addEventListener('click', processBatchInput);
     batchCancel.addEventListener('click', closeBatchModal);
-    
-    // 清空确认事件
-    clearConfirm.addEventListener('click', clearAllTestCases);
-    clearCancel.addEventListener('click', closeClearModal);
     
     // 关闭模态框事件
     closeModalButtons.forEach(btn => btn.addEventListener('click', closeAllModals));
@@ -95,7 +92,6 @@ function addTestCase() {
     };
     
     testCases.push(newTestCase);
-    saveToLocalStorage();
     renderTestCasesList();
     selectTestCase(newTestCase.id);
     
@@ -112,20 +108,13 @@ function closeBatchModal() {
     batchModal.classList.remove('active');
 }
 
-// 清空所有测试样例
-function openClearModal() {
+// 清空所有测试样例 - 直接删除，不需要确认
+function clearAllTestCases() {
     if (testCases.length === 0) {
-        showNotification('当前没有测试样例可清空', true);
+        showNotification('当前没有测试样例可删除', true);
         return;
     }
-    clearModal.classList.add('active');
-}
-
-function closeClearModal() {
-    clearModal.classList.remove('active');
-}
-
-function clearAllTestCases() {
+    
     // 清空所有测试样例
     testCases = [];
     nextId = 1;
@@ -142,16 +131,14 @@ function clearAllTestCases() {
     updateCount(inputCount, '');
     updateCount(outputCount, '');
     
-    saveToLocalStorage();
     renderTestCasesList();
-    closeClearModal();
     
-    showNotification('已清空所有测试样例');
+    showNotification('已删除所有测试样例');
 }
 
 function closeAllModals() {
     closeBatchModal();
-    closeClearModal();
+    // clearModal不再需要关闭，因为现在不需要确认框
 }
 
 function processBatchInput() {
@@ -173,7 +160,6 @@ function processBatchInput() {
         testCases.push(testCase);
     });
     
-    saveToLocalStorage();
     renderTestCasesList();
     closeBatchModal();
     
@@ -251,7 +237,7 @@ function parseBatchInput(text) {
     return testCases;
 }
 
-// 删除测试样例
+// 删除单个测试样例
 function deleteTestCase(id) {
     if (!confirm('确定要删除这个测试样例吗？')) return;
     
@@ -267,7 +253,6 @@ function deleteTestCase(id) {
     
     // 重新编号
     renumberTestCases();
-    saveToLocalStorage();
     renderTestCasesList();
     
     showNotification('测试样例已删除');
@@ -326,8 +311,7 @@ function updateTestCaseContent(type, content) {
     } else {
         testCase.output = content;
     }
-    
-    saveToLocalStorage();
+    // 注意：这里不再调用saveToLocalStorage()，数据只存在于内存中
 }
 
 // 切换标签页
@@ -456,51 +440,22 @@ function showNotification(message, isError = false) {
     }, 3000);
 }
 
-// 本地存储功能
-function saveToLocalStorage() {
-    const data = {
-        testCases: testCases,
-        nextId: nextId
-    };
-    localStorage.setItem('testCasesManager', JSON.stringify(data));
-}
-
-function loadFromLocalStorage() {
-    const savedData = localStorage.getItem('testCasesManager');
-    if (savedData) {
-        try {
-            const data = JSON.parse(savedData);
-            testCases = data.testCases || [];
-            nextId = data.nextId || 1;
-        } catch (e) {
-            console.error('加载本地存储数据失败:', e);
-            testCases = [];
-            nextId = 1;
-        }
-    }
-}
-
-// 添加示例数据
-function addSampleData() {
-    if (testCases.length === 0 && localStorage.getItem('firstVisit') === null) {
+// 初始化示例数据
+function initSampleData() {
+    if (testCases.length === 0) {
+        // 添加示例测试样例
         testCases = [
             {
                 id: 1,
-                input: '',
-                output: ''
+                input: '5\n1 2 3 4 5\n',
+                output: '15\n'
             },
             {
                 id: 2,
-                input: '',
-                output: ''
+                input: '3\n10 20 30\n',
+                output: '60\n'
             }
         ];
         nextId = 3;
-        localStorage.setItem('firstVisit', 'false');
-        saveToLocalStorage();
-        renderTestCasesList();
     }
 }
-
-// 初始化示例数据
-addSampleData();
