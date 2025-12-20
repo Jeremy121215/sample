@@ -42,6 +42,18 @@
                     </div>
                 </div>
                 
+                <div class="extra-files-section">
+                    <h4><i class="fas fa-file-alt"></i> 额外文件</h4>
+                    <div id="extra-files-list" class="extra-files-list">
+                        <div class="empty-extra-files">
+                            <p>暂无额外文件</p>
+                        </div>
+                    </div>
+                    <button id="add-extra-file" class="btn btn-secondary btn-small">
+                        <i class="fas fa-plus"></i> 添加额外文件
+                    </button>
+                </div>
+                
                 <div class="instructions">
                     <h3><i class="fas fa-info-circle"></i> 使用说明</h3>
                     <div class="instruction-item">
@@ -57,33 +69,21 @@
                         </div>
                     </div>
                     <div class="instruction-item">
-                        <div class="instruction-icon"><i class="fas fa-edit"></i></div>
+                        <div class="instruction-icon"><i class="fas fa-file-alt"></i></div>
                         <div class="instruction-content">
-                            <strong>编辑样例：</strong>点击左侧样例编号，在右侧编辑输入(IN)和输出(OUT)内容
+                            <strong>额外文件：</strong>点击"添加额外文件"可以添加任意类型的文件
                         </div>
                     </div>
                     <div class="instruction-item">
                         <div class="instruction-icon"><i class="fas fa-trash-alt"></i></div>
                         <div class="instruction-content">
-                            <strong>删除样例：</strong>点击样例右侧的删除按钮可删除单个样例
-                        </div>
-                    </div>
-                    <div class="instruction-item">
-                        <div class="instruction-icon"><i class="fas fa-broom"></i></div>
-                        <div class="instruction-content">
-                            <strong>清空所有：</strong>点击"清空所有"按钮可删除全部测试样例
+                            <strong>删除操作：</strong>删除单个样例或清空所有时会显示确认提示
                         </div>
                     </div>
                     <div class="instruction-item">
                         <div class="instruction-icon"><i class="fas fa-download"></i></div>
                         <div class="instruction-content">
-                            <strong>下载样例：</strong>点击"下载所有样例"将全部样例打包为ZIP文件
-                        </div>
-                    </div>
-                    <div class="instruction-item">
-                        <div class="instruction-icon"><i class="fas fa-code"></i></div>
-                        <div class="instruction-content">
-                            <strong>自动编号：</strong>所有样例自动编号(1,2,3...)，不支持自定义名称
+                            <strong>自定义下载：</strong>可以自定义ZIP文件名，包含所有样例和额外文件
                         </div>
                     </div>
                     
@@ -146,11 +146,18 @@ out2:
                     </div>
                     
                     <div class="download-section">
+                        <div class="download-options">
+                            <div class="option-group">
+                                <label for="zip-filename"><i class="fas fa-file-archive"></i> ZIP文件名：</label>
+                                <input type="text" id="zip-filename" value="testcases" placeholder="输入ZIP文件名">
+                                <span class="file-extension">.zip</span>
+                            </div>
+                        </div>
                         <button id="download-all" class="btn btn-success btn-download">
-                            <i class="fas fa-download"></i> 下载所有样例 (ZIP)
+                            <i class="fas fa-download"></i> 下载所有文件 (ZIP)
                         </button>
                         <p style="margin-top: 15px; font-size: 0.9rem; color: #7f8c8d;">
-                            下载的ZIP文件将包含所有样例的.in和.out文件，按数字编号命名
+                            下载的ZIP文件将包含所有样例的.in、.out文件以及额外文件
                         </p>
                     </div>
                 </div>
@@ -188,22 +195,25 @@ out2:
             </div>
         </div>
         
-        <!-- 清空确认模态框 -->
-        <div class="modal" id="clear-modal">
+        <!-- 额外文件添加模态框 -->
+        <div class="modal" id="extra-file-modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3><i class="fas fa-exclamation-triangle"></i> 确认清空所有样例</h3>
+                    <h3><i class="fas fa-file-plus"></i> 添加额外文件</h3>
                     <button class="close-modal">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="warning-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <p>您确定要清空所有测试样例吗？此操作不可撤销！</p>
-                        <p class="warning-detail">所有样例数据将被永久删除。</p>
+                    <div class="form-group">
+                        <label for="extra-file-name"><i class="fas fa-file"></i> 文件名（包含扩展名）：</label>
+                        <input type="text" id="extra-file-name" placeholder="例如：readme.txt、config.json">
+                    </div>
+                    <div class="form-group">
+                        <label for="extra-file-content"><i class="fas fa-edit"></i> 文件内容：</label>
+                        <textarea id="extra-file-content" placeholder="输入文件内容..." rows="10"></textarea>
                     </div>
                     <div class="modal-footer">
-                        <button id="clear-cancel" class="btn btn-secondary">取消</button>
-                        <button id="clear-confirm" class="btn btn-danger">确认清空</button>
+                        <button id="extra-file-cancel" class="btn btn-secondary">取消</button>
+                        <button id="extra-file-submit" class="btn btn-primary">添加文件</button>
                     </div>
                 </div>
             </div>
