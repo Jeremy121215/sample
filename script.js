@@ -2,9 +2,11 @@
 let testCases = [];
 let nextId = 1;
 let currentTestCaseId = null;
+let extraFiles = []; // 额外文件数组
 
 // DOM元素
 const testcasesList = document.getElementById('testcases-list');
+const extraFilesList = document.getElementById('extra-files-list');
 const noSelection = document.getElementById('no-selection');
 const editorContent = document.getElementById('editor-content');
 const editorTitle = document.querySelector('#editor-title span');
@@ -16,33 +18,42 @@ const addButton = document.getElementById('add-testcase');
 const batchAddButton = document.getElementById('batch-add');
 const clearAllButton = document.getElementById('clear-all');
 const downloadButton = document.getElementById('download-all');
+const addExtraFileButton = document.getElementById('add-extra-file');
+const zipFilenameInput = document.getElementById('zip-filename');
 const notification = document.getElementById('notification');
 
 // 模态框元素
 const batchModal = document.getElementById('batch-modal');
-const clearModal = document.getElementById('clear-modal');
+const extraFileModal = document.getElementById('extra-file-modal');
 const batchInput = document.getElementById('batch-input');
+const extraFileNameInput = document.getElementById('extra-file-name');
+const extraFileContentInput = document.getElementById('extra-file-content');
 const batchSubmit = document.getElementById('batch-submit');
 const batchCancel = document.getElementById('batch-cancel');
-const clearConfirm = document.getElementById('clear-confirm');
-const clearCancel = document.getElementById('clear-cancel');
+const extraFileSubmit = document.getElementById('extra-file-submit');
+const extraFileCancel = document.getElementById('extra-file-cancel');
 const closeModalButtons = document.querySelectorAll('.close-modal');
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
-    // 不再从本地存储加载数据
-    // 初始化示例数据
-    initSampleData();
+    // 初始化，无示例数据
+    renderTestCasesList();
+    renderExtraFilesList();
     
     // 绑定事件监听器
     addButton.addEventListener('click', addTestCase);
     batchAddButton.addEventListener('click', openBatchModal);
-    clearAllButton.addEventListener('click', clearAllTestCases); // 直接调用，不需要模态框确认
-    downloadButton.addEventListener('click', downloadAllTestCases);
+    clearAllButton.addEventListener('click', clearAllTestCases);
+    downloadButton.addEventListener('click', downloadAllFiles);
+    addExtraFileButton.addEventListener('click', openExtraFileModal);
     
     // 批量添加事件
     batchSubmit.addEventListener('click', processBatchInput);
     batchCancel.addEventListener('click', closeBatchModal);
+    
+    // 额外文件事件
+    extraFileSubmit.addEventListener('click', addExtraFile);
+    extraFileCancel.addEventListener('click', closeExtraFileModal);
     
     // 关闭模态框事件
     closeModalButtons.forEach(btn => btn.addEventListener('click', closeAllModals));
@@ -54,8 +65,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    clearModal.addEventListener('click', function(e) {
-        if (e.target === clearModal) {
+    extraFileModal.addEventListener('click', function(e) {
+        if (e.target === extraFileModal) {
             closeAllModals();
         }
     });
@@ -78,9 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
             switchTab(tabType);
         });
     });
-    
-    // 渲染初始列表
-    renderTestCasesList();
 });
 
 // 添加新的测试样例
@@ -108,10 +116,14 @@ function closeBatchModal() {
     batchModal.classList.remove('active');
 }
 
-// 清空所有测试样例 - 直接删除，不需要确认
+// 清空所有测试样例 - 添加确认提示
 function clearAllTestCases() {
-    if (testCases.length === 0) {
-        showNotification('当前没有测试样例可删除', true);
+    if (testCases.length === 0 && extraFiles.length === 0) {
+        showNotification('当前没有测试样例或额外文件可删除', true);
+        return;
+    }
+    
+    if (!confirm('确定要删除所有测试样例和额外文件吗？此操作不可撤销！')) {
         return;
     }
     
@@ -119,6 +131,7 @@ function clearAllTestCases() {
     testCases = [];
     nextId = 1;
     currentTestCaseId = null;
+    extraFiles = [];
     
     // 更新UI显示
     noSelection.style.display = 'flex';
@@ -132,13 +145,65 @@ function clearAllTestCases() {
     updateCount(outputCount, '');
     
     renderTestCasesList();
+    renderExtraFilesList();
     
-    showNotification('已删除所有测试样例');
+    showNotification('已删除所有测试样例和额外文件');
+}
+
+// 打开额外文件添加模态框
+function openExtraFileModal() {
+    extraFileNameInput.value = '';
+    extraFileContentInput.value = '';
+    extraFileModal.classList.add('active');
+}
+
+function closeExtraFileModal() {
+    extraFileModal.classList.remove('active');
+}
+
+// 添加额外文件
+function addExtraFile() {
+    const fileName = extraFileNameInput.value.trim();
+    const fileContent = extraFileContentInput.value;
+    
+    if (!fileName) {
+        showNotification('请输入文件名', true);
+        return;
+    }
+    
+    // 检查文件名是否已存在
+    if (extraFiles.some(file => file.name === fileName)) {
+        showNotification('文件名已存在，请使用其他文件名', true);
+        return;
+    }
+    
+    // 添加新文件
+    extraFiles.push({
+        name: fileName,
+        content: fileContent
+    });
+    
+    renderExtraFilesList();
+    closeExtraFileModal();
+    
+    showNotification(`已添加额外文件: ${fileName}`);
+}
+
+// 删除额外文件
+function deleteExtraFile(fileName) {
+    if (!confirm(`确定要删除文件 "${fileName}" 吗？`)) {
+        return;
+    }
+    
+    extraFiles = extraFiles.filter(file => file.name !== fileName);
+    renderExtraFilesList();
+    
+    showNotification(`已删除文件: ${fileName}`);
 }
 
 function closeAllModals() {
     closeBatchModal();
-    // clearModal不再需要关闭，因为现在不需要确认框
+    closeExtraFileModal();
 }
 
 function processBatchInput() {
@@ -311,7 +376,6 @@ function updateTestCaseContent(type, content) {
     } else {
         testCase.output = content;
     }
-    // 注意：这里不再调用saveToLocalStorage()，数据只存在于内存中
 }
 
 // 切换标签页
@@ -395,29 +459,81 @@ function renderTestCasesList() {
     });
 }
 
-// 下载所有测试样例为ZIP文件
-async function downloadAllTestCases() {
-    if (testCases.length === 0) {
-        showNotification('没有可下载的测试样例', true);
+// 渲染额外文件列表
+function renderExtraFilesList() {
+    if (extraFiles.length === 0) {
+        extraFilesList.innerHTML = `
+            <div class="empty-extra-files">
+                <p>暂无额外文件</p>
+            </div>
+        `;
+        return;
+    }
+    
+    extraFilesList.innerHTML = '';
+    
+    extraFiles.forEach(file => {
+        const fileElement = document.createElement('div');
+        fileElement.className = 'extra-file-item';
+        
+        fileElement.innerHTML = `
+            <div class="extra-file-name" title="${file.name}">${file.name}</div>
+            <div class="extra-file-actions">
+                <button class="extra-file-btn delete-extra-file-btn" title="删除">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        // 添加删除按钮事件
+        const deleteBtn = fileElement.querySelector('.delete-extra-file-btn');
+        deleteBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            deleteExtraFile(file.name);
+        });
+        
+        extraFilesList.appendChild(fileElement);
+    });
+}
+
+// 下载所有文件为ZIP
+async function downloadAllFiles() {
+    if (testCases.length === 0 && extraFiles.length === 0) {
+        showNotification('没有可下载的文件', true);
         return;
     }
     
     try {
         const zip = new JSZip();
         
-        // 只添加.in和.out文件，不添加额外的文件
+        // 添加测试样例文件
         testCases.forEach(testCase => {
             zip.file(`${testCase.id}.in`, testCase.input);
             zip.file(`${testCase.id}.out`, testCase.output);
         });
         
+        // 添加额外文件
+        extraFiles.forEach(file => {
+            zip.file(file.name, file.content);
+        });
+        
         // 生成ZIP文件
         const content = await zip.generateAsync({type: "blob"});
         
-        // 下载文件
-        saveAs(content, `testcases_${new Date().getTime()}.zip`);
+        // 获取自定义文件名
+        let filename = zipFilenameInput.value.trim();
+        if (!filename) {
+            filename = 'testcases';
+        }
+        if (!filename.toLowerCase().endsWith('.zip')) {
+            filename += '.zip';
+        }
         
-        showNotification(`已打包下载 ${testCases.length} 个测试样例`);
+        // 下载文件
+        saveAs(content, filename);
+        
+        const totalFiles = testCases.length * 2 + extraFiles.length;
+        showNotification(`已打包下载 ${totalFiles} 个文件到 ${filename}`);
     } catch (error) {
         console.error('生成ZIP文件时出错:', error);
         showNotification('下载失败，请重试', true);
@@ -438,24 +554,4 @@ function showNotification(message, isError = false) {
     setTimeout(() => {
         notification.classList.remove('show');
     }, 3000);
-}
-
-// 初始化示例数据
-function initSampleData() {
-    if (testCases.length === 0) {
-        // 添加示例测试样例
-        testCases = [
-            {
-                id: 1,
-                input: '',
-                output: ''
-            },
-            {
-                id: 2,
-                input: '',
-                output: ''
-            }
-        ];
-        nextId = 3;
-    }
 }
